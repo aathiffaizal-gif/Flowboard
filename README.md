@@ -44,10 +44,14 @@ A simple task manager I built with **Meu Labs**. It has a Flask + SQLite backend
 ### New board
 ![New group form](screenshots/new-group.png)
 *Create a board to organise tasks.*
+<img width="1270" height="866" alt="image" src="https://github.com/user-attachments/assets/11e3bed1-c36e-482f-8c3b-c45615b71e5c" />
+
 
 ### Add to Group
 ![Add task to group](screenshots/add-to-group.png)
 *Link an existing task to a board.*
+<img width="1276" height="868" alt="image" src="https://github.com/user-attachments/assets/49747ec1-a991-480f-a84c-36078c6b8afb" />
+
 
 ## Tech Stack
 
