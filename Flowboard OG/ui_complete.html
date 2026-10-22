@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager — Teaching Template</title>
+  <style>
+    /*
+    ================================================================
+    TEACHING TEMPLATE — Task Manager UI
+    ================================================================
+    This mirrors the DishGram pattern your students already know:
+      • Fixed navbar
+      • Card list in the main feed
+      • Modals for create / edit / group
+      • Side drawer for groups
+    
+    Each section is labelled so students can map it to the backend.
+    ================================================================
+    */
+
+    :root {
+      --primary:       #4f46e5;   /* indigo */
+      --primary-hover: #4338ca;
+      --danger:        #ef4444;
+      --success:       #22c55e;
+      --bg:            #f8fafc;
+      --card-bg:       #ffffff;
+      --border:        #e2e8f0;
+      --text:          #1e293b;
+      --text-muted:    #94a3b8;
+      --radius:        8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-top: 70px;
+      padding-bottom: 60px;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 60px; background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 24px; z-index: 100;
+    }
+    .brand { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    #userBadge {
+      font-size: 0.85rem; color: var(--text-muted);
+      background: #f1f5f9; padding: 4px 10px; border-radius: 20px;
+    }
+
+    /* ── Buttons ── */
+    button {
+      cursor: pointer; border: none; border-radius: var(--radius);
+      padding: 8px 16px; font-size: 0.875rem; font-weight: 600;
+      transition: background 0.15s;
+    }
+    .btn-primary   { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-danger    { background: var(--danger); color: #fff; }
+    .btn-sm        { padding: 4px 10px; font-size: 0.8rem; }
+
+    /* ── Main feed ── */
+    .feed-container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .filter-bar input {
+      flex: 1; padding: 8px 12px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.875rem;
+    }
+
+    /* ── Task card ── */
+    .task-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .task-card-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .task-title { font-weight: 600; font-size: 1rem; }
+    .task-meta  {
+      display: flex; gap: 8px; align-items: center;
+      flex-wrap: wrap; padding: 10px 16px;
+    }
+    .badge {
+      font-size: 0.75rem; padding: 3px 10px; border-radius: 20px; font-weight: 600;
+    }
+    .badge-high   { background: #fee2e2; color: #991b1b; }
+    .badge-medium { background: #fef3c7; color: #92400e; }
+    .badge-low    { background: #dcfce7; color: #166534; }
+    .badge-pending  { background: #e0e7ff; color: #3730a3; }
+    .badge-done     { background: #dcfce7; color: #166534; }
+    .task-desc {
+      padding: 0 16px 14px 16px; font-size: 0.875rem; color: var(--text-muted);
+    }
+    .task-actions { display: flex; gap: 8px; padding: 0 16px 14px 16px; }
+
+    /* ── Modal ── */
+    .modal {
+      display: none; position: fixed;
+      inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 200; align-items: center; justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-box {
+      background: var(--card-bg); width: 90%; max-width: 480px;
+      border-radius: 12px; padding: 28px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-box h2 { margin-bottom: 20px; font-size: 1.1rem; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%; padding: 9px 12px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.875rem; font-family: inherit;
+    }
+    .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+
+    /* ── Drawer (Groups) ── */
+    .drawer {
+      position: fixed; top: 0; right: -400px; width: 360px; height: 100%;
+      background: var(--card-bg); border-left: 1px solid var(--border);
+      box-shadow: -4px 0 12px rgba(0,0,0,.08);
+      transition: right 0.3s ease; z-index: 150;
+      display: flex; flex-direction: column;
+    }
+    .drawer.open { right: 0; }
+    .drawer-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .drawer-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .board-card {
+      background: #f8fafc; border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px; margin-bottom: 12px;
+    }
+    .board-card-title {
+      font-weight: 600; color: var(--primary);
+      margin-bottom: 8px; display: flex;
+      justify-content: space-between; align-items: center;
+    }
+    .board-task-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Toast notification ── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: #fff; padding: 10px 20px;
+      border-radius: 20px; font-size: 0.875rem; font-weight: 500;
+      opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ================================================================
+  NAVBAR
+  — "My Groups" toggles the side drawer (same pattern as DishGram)
+  — login/logout buttons swap depending on session state
+================================================================ -->
+<header class="navbar">
+  <div class="brand">TaskFlow</div>
+  <div class="nav-right">
+    <span id="userBadge">Not logged in</span>
+    <button class="btn-secondary btn-sm" id="authBtn" onclick="openModal('loginModal')">Log in</button>
+    <button class="btn-primary  btn-sm" onclick="openModal('addTaskModal')">+ Add Task</button>
+    <button class="btn-secondary btn-sm" onclick="toggleDrawer()">📁 My Groups</button>
+  </div>
+</header>
+
+
+<!-- ================================================================
+  MAIN FEED
+================================================================ -->
+<main class="feed-container">
+
+  <!-- Filter / search bar -->
+  <div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="Search tasks…"
+           oninput="handleSearch()" />
+    <button class="btn-secondary" onclick="loadTasks()">↺ Refresh</button>
+  </div>
+
+  <!-- Task cards go here -->
+  <div id="taskFeed"></div>
+</main>
+
+
+<!-- ================================================================
+  SIDE DRAWER — Groups
+  Mirror of the DishGram Cook Lists drawer
+================================================================ -->
+<aside class="drawer" id="groupDrawer">
+  <div class="drawer-header">
+    <strong>📁 My Groups</strong>
+    <button class="btn-secondary btn-sm" onclick="toggleDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <button class="btn-primary" style="width:100%;margin-bottom:14px"
+            onclick="openModal('createGroupModal')">+ New Group</button>
+    <div id="groupsContainer"></div>
+  </div>
+</aside>
+
+
+<!-- ================================================================
+  MODAL: Log In
+  
+  TEACHING NOTE:
+  When the student clicks "Log in", we POST to /login with
+  { username, password }.  Flask sets a session cookie.
+  On success we update the navbar and reload tasks.
+================================================================ -->
+<div class="modal" id="loginModal">
+  <div class="modal-box">
+    <h2>Log in</h2>
+
+    <div id="loginRegisterToggle">
+      <div id="loginSection">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUsername" placeholder="your username" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-primary" onclick="handleLogin()">Log in</button>
+          <button class="btn-secondary" onclick="showRegister()">Create account</button>
+          <button class="btn-secondary" onclick="closeModal('loginModal')">Cancel</button>
+        </div>
+      </div>
+
+      <div id="registerSection" style="display:none">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="regUsername" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-primary" onclick="handleRegister()">Register</button>
+          <button class="btn-secondary" onclick="showLogin()">Back to login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+  MODAL: Add Task → POST /addtasks
+================================================================ -->
+<div class="modal" id="addTaskModal">
+  <div class="modal-box">
+    <h2>Add a new task</h2>
+    <div class="form-group">
+      <label>Task name</label>
+      <input type="text" id="newTaskName" placeholder="e.g. Write unit tests" />
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="newTaskDesc" rows="3" placeholder="What needs to be done?"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="newTaskStatus">
+        <option value="pending">Pending</option>
+        <option value="in-progress">In Progress</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Priority</label>
+      <select id="newTaskPriority">
+        <option value="high">High</option>
+        <option value="medium" selected>Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Time requirement</label>
+      <input type="text" id="newTaskTime" placeholder="e.g. 2 hours" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="handleAddTask()">Add task</button>
+      <button class="btn-secondary" onclick="closeModal('addTaskModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+  MODAL: Edit Task → PUT /updatetasks/<id>
+================================================================ -->
+<div class="modal" id="editTaskModal">
+  <div class="modal-box">
+    <h2>Edit task</h2>
+    <input type="hidden" id="editTaskId" />
+    <div class="form-group">
+      <label>Task name</label>
+      <input type="text" id="editTaskName" />
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="editTaskDesc" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="editTaskStatus">
+        <option value="pending">Pending</option>
+        <option value="in-progress">In Progress</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Priority</label>
+      <select id="editTaskPriority">
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Time requirement</label>
+      <input type="text" id="editTaskTime" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="handleEditTask()">Save changes</button>
+      <button class="btn-secondary" onclick="closeModal('editTaskModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+  MODAL: Add Task to Group → POST /groups/<id>/tasks
+================================================================ -->
+<div class="modal" id="addToGroupModal">
+  <div class="modal-box">
+    <h2>Add to group</h2>
+    <input type="hidden" id="groupTaskId" />
+    <div class="form-group">
+      <label>Choose a group</label>
+      <select id="groupSelect"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="handleAddToGroup()">Add</button>
+      <button class="btn-secondary" onclick="closeModal('addToGroupModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+  MODAL: Create Group → POST /groups
+================================================================ -->
+<div class="modal" id="createGroupModal">
+  <div class="modal-box">
+    <h2>New group</h2>
+    <div class="form-group">
+      <label>Group name</label>
+      <input type="text" id="newGroupName" placeholder="e.g. Project Alpha" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="handleCreateGroup()">Create</button>
+      <button class="btn-secondary" onclick="closeModal('createGroupModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div id="toast"></div>
+
+
+<script>
+/*
+================================================================
+JAVASCRIPT — Teaching Template
+================================================================
+Pattern:
+  1. Call the backend with fetch()
+  2. On success → update the UI
+  3. On error   → show a toast message
+
+All API calls point to http://localhost:5555 (your Flask server).
+Students swap this BASE_URL with their actual server address.
+================================================================
+*/
+
+const BASE_URL = 'http://localhost:5555';
+
+// ── State ────────────────────────────────────────────────────
+let currentUser = null;   // set after login, cleared on logout
+let allTasks    = [];     // in-memory cache of tasks from the server
+let allGroups   = [];     // in-memory cache of groups
+
+// ── On page load ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  checkSession();   // ask the server "who am I?"
+  loadTasks();      // load tasks into the feed
+  loadGroups();     // load groups into the drawer
+});
+
+
+// ================================================================
+//  AUTH — register / login / logout / session check
+// ================================================================
+
+/**
+ * GET /me
+ * Ask the server if there's an active session.
+ * The browser automatically sends the session cookie → the server
+ * checks session['username'] and returns it.
+ */
+async function checkSession() {
+  try {
+    const res = await fetch(`${BASE_URL}/me`, { credentials: 'include' });
+    // credentials: 'include' tells fetch to send cookies
+    // Without this, the browser blocks the session cookie on cross-origin requests
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.logged_in) {
+        setUser(data.username);
+      }
+    }
+  } catch (e) {
+    // Server not running — silently fail during development
+  }
+}
+
+/**
+ * POST /register
+ */
+async function handleRegister() {
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value;
+  if (!username || !password) return toast('Fill in both fields');
+
+  const res = await fetch(`${BASE_URL}/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    toast('Account created! Please log in.');
+    showLogin();
+  } else {
+    toast(data.error || 'Registration failed');
+  }
+}
+
+/**
+ * POST /login
+ * On success the server writes session['username'] = username
+ * and Flask sends back a signed session cookie automatically.
+ */
+async function handleLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!username || !password) return toast('Fill in both fields');
+
+  const res = await fetch(`${BASE_URL}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',   // ← must include this so the cookie is stored
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    setUser(data.username);
+    closeModal('loginModal');
+    toast(`Welcome back, ${data.username}!`);
+  } else {
+    toast(data.error || 'Login failed');
+  }
+}
+
+/**
+ * POST /logout
+ * Server calls session.clear() — the cookie becomes invalid.
+ */
+async function handleLogout() {
+  await fetch(`${BASE_URL}/logout`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+  currentUser = null;
+  document.getElementById('userBadge').textContent = 'Not logged in';
+  document.getElementById('authBtn').textContent = 'Log in';
+  document.getElementById('authBtn').onclick = () => openModal('loginModal');
+  toast('Logged out');
+}
+
+/** Update the navbar to show the logged-in user */
+function setUser(username) {
+  currentUser = username;
+  document.getElementById('userBadge').textContent = `👤 ${username}`;
+  document.getElementById('authBtn').textContent = 'Log out';
+  document.getElementById('authBtn').onclick = handleLogout;
+}
+
+function showRegister() {
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('registerSection').style.display = 'block';
+}
+function showLogin() {
+  document.getElementById('loginSection').style.display = 'block';
+  document.getElementById('registerSection').style.display = 'none';
+}
+
+
+// ================================================================
+//  TASKS — load / search / add / edit / delete
+// ================================================================
+
+/**
+ * GET /tasks/search?task_name=
+ * (returns all tasks when query is empty)
+ */
+async function loadTasks(query = '') {
+  try {
+    const res = await fetch(`${BASE_URL}/tasks/search?task_name=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    allTasks = Array.isArray(data) ? data : [];
+    renderTasks(allTasks);
+  } catch (e) {
+    document.getElementById('taskFeed').innerHTML =
+      '<p style="color:var(--text-muted);text-align:center;padding:40px">Could not connect to server.</p>';
+  }
+}
+
+function handleSearch() {
+  const q = document.getElementById('searchInput').value;
+  loadTasks(q);
+}
+
+/** Render task cards into the feed */
+function renderTasks(tasks) {
+  const feed = document.getElementById('taskFeed');
+  if (tasks.length === 0) {
+    feed.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px">No tasks yet. Add one!</p>';
+    return;
+  }
+
+  feed.innerHTML = tasks.map(task => `
+    <div class="task-card" id="task-${task.Task_id}">
+      <div class="task-card-header">
+        <span class="task-title">${escHtml(task.task_name)}</span>
+        <span class="badge badge-${(task.Priority || 'medium').toLowerCase()}">${task.Priority || 'medium'}</span>
+      </div>
+      <div class="task-meta">
+        <span class="badge badge-${task.task_status === 'done' ? 'done' : 'pending'}">${task.task_status}</span>
+        ${task.task_TimeRequirement ? `<span style="font-size:0.8rem;color:var(--text-muted)">⏱ ${escHtml(task.task_TimeRequirement)}</span>` : ''}
+        <span style="font-size:0.8rem;color:var(--text-muted)">📅 ${task.Date_created || ''}</span>
+        <span style="font-size:0.75rem;color:var(--text-muted)">#${task.Task_id}</span>
+      </div>
+      ${task.task_description ? `<div class="task-desc">${escHtml(task.task_description)}</div>` : ''}
+      <div class="task-actions">
+        <button class="btn-secondary btn-sm" onclick="openEditModal(${task.Task_id})">✏️ Edit</button>
+        <button class="btn-danger    btn-sm" onclick="handleDeleteTask(${task.Task_id})">🗑 Delete</button>
+        <button class="btn-secondary btn-sm" onclick="openAddToGroupModal(${task.Task_id})">📁 Add to group</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+/**
+ * POST /addtasks
+ * We do NOT send a Task_id — the database generates it automatically (AUTOINCREMENT).
+ * The server returns the generated ID in the response as data.Task_id.
+ */
+async function handleAddTask() {
+  const task_name            = document.getElementById('newTaskName').value.trim();
+  const task_description     = document.getElementById('newTaskDesc').value.trim();
+  const task_status          = document.getElementById('newTaskStatus').value;
+  const Priority             = document.getElementById('newTaskPriority').value;
+  const task_TimeRequirement = document.getElementById('newTaskTime').value.trim();
+
+  if (!task_name) return toast('Task name is required');
+
+  const Date_created = new Date().toISOString().split('T')[0];   // YYYY-MM-DD
+
+  const res = await fetch(`${BASE_URL}/addtasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    // No Task_id in the body — the database assigns it
+    body: JSON.stringify({ task_name, task_description, task_status,
+                           task_TimeRequirement, Priority, Date_created })
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    toast(`Task added! (ID: ${data.Task_id})`);
+    closeModal('addTaskModal');
+    document.getElementById('addTaskModal').querySelectorAll('input, textarea, select')
+      .forEach(el => { if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = ''; });
+    loadTasks();
+  } else {
+    toast(data.error || 'Could not add task');
+  }
+}
+
+/** Open the edit modal and pre-fill with the task's current data */
+function openEditModal(taskId) {
+  // taskId arrives as a number (integer) from the onclick attribute.
+  // Task_id from the server is also a number, so === works here.
+  const task = allTasks.find(t => t.Task_id === taskId);
+  if (!task) return;
+
+  document.getElementById('editTaskId').value       = task.Task_id;   // stored as string in input
+  document.getElementById('editTaskName').value     = task.task_name;
+  document.getElementById('editTaskDesc').value     = task.task_description || '';
+  document.getElementById('editTaskStatus').value   = task.task_status;
+  document.getElementById('editTaskPriority').value = task.Priority;
+  document.getElementById('editTaskTime').value     = task.task_TimeRequirement || '';
+
+  openModal('editTaskModal');
+}
+
+/**
+ * PUT /updatetasks/<id>
+ */
+async function handleEditTask() {
+  // input.value is always a STRING even if the original value was a number.
+  // parseInt() converts it back to an integer so the URL and comparison work correctly.
+  const Task_id              = parseInt(document.getElementById('editTaskId').value);
+  const task_name            = document.getElementById('editTaskName').value.trim();
+  const task_description     = document.getElementById('editTaskDesc').value.trim();
+  const task_status          = document.getElementById('editTaskStatus').value;
+  const Priority             = document.getElementById('editTaskPriority').value;
+  const task_TimeRequirement = document.getElementById('editTaskTime').value.trim();
+
+  if (!task_name) return toast('Task name is required');
+
+  const original     = allTasks.find(t => t.Task_id === Task_id);
+  const Date_created = original ? original.Date_created : '';
+
+  const res = await fetch(`${BASE_URL}/updatetasks/${Task_id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ task_name, task_description, task_status,
+                           task_TimeRequirement, Priority, Date_created })
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    toast('Task updated!');
+    closeModal('editTaskModal');
+    loadTasks();
+  } else {
+    toast(data.error || 'Could not update task');
+  }
+}
+
+/**
+ * DELETE /tasks/<id>
+ * 
+ * TEACHING NOTE:
+ * We ask for a confirm() before deleting — good UX habit.
+ * The fetch method is 'DELETE', the same URL pattern as GET /tasks/<id>.
+ * Flask routes them separately because of the methods=[] list.
+ */
+async function handleDeleteTask(taskId) {
+  if (!confirm('Delete this task?')) return;
+
+  const res = await fetch(`${BASE_URL}/tasks/${taskId}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    toast('Task deleted');
+    // Optimistic removal — don't wait for a full reload
+    document.getElementById(`task-${taskId}`)?.remove();
+    allTasks = allTasks.filter(t => t.Task_id !== taskId);
+  } else {
+    toast(data.error || 'Could not delete task');
+  }
+}
+
+
+// ================================================================
+//  GROUPS — load / create / add tasks / remove tasks
+// ================================================================
+
+/**
+ * GET /groups
+ */
+async function loadGroups() {
+  try {
+    const res = await fetch(`${BASE_URL}/groups`);
+    allGroups = await res.json();
+    renderGroups();
+  } catch (e) { /* server not running */ }
+}
+
+/** Render groups in the side drawer */
+async function renderGroups() {
+  const container = document.getElementById('groupsContainer');
+
+  if (!allGroups.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem">No groups yet.</p>';
+    return;
+  }
+
+  // We fetch tasks for each group separately so students can see
+  // the /groups/<id>/tasks endpoint in action.
+  let html = '';
+  for (const group of allGroups) {
+    const res   = await fetch(`${BASE_URL}/groups/${group.group_id}/tasks`);
+    const tasks = res.ok ? await res.json() : [];
+
+    const taskItems = tasks.length
+      ? tasks.map(t => `
+          <div class="group-task-item">
+            <span>${escHtml(t.task_name)}</span>
+            <button class="btn-danger btn-sm"
+              onclick="handleRemoveFromGroup(${group.group_id}, '${t.Task_id}')">✕</button>
+          </div>`).join('')
+      : '<div style="font-size:0.8rem;color:var(--text-muted);padding:6px 0">No tasks yet</div>';
+
+    html += `
+      <div class="group-card">
+        <div class="group-card-title">
+          <span>📁 ${escHtml(group.group_name)}</span>
+          <small style="color:var(--text-muted);font-size:0.75rem">${tasks.length} task(s)</small>
+        </div>
+        ${taskItems}
+      </div>`;
+  }
+  container.innerHTML = html;
+}
+
+/**
+ * POST /groups
+ */
+async function handleCreateGroup() {
+  const group_name = document.getElementById('newGroupName').value.trim();
+  if (!group_name) return toast('Group name is required');
+
+  const res  = await fetch(`${BASE_URL}/groups`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ group_name })
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    toast('Group created!');
+    document.getElementById('newGroupName').value = '';
+    closeModal('createGroupModal');
+    await loadGroups();
+  } else {
+    toast(data.error || 'Could not create group');
+  }
+}
+
+/** Populate the group dropdown and open the "add to group" modal */
+async function openAddToGroupModal(taskId) {
+  if (!allGroups.length) {
+    await loadGroups();
+  }
+  if (!allGroups.length) {
+    return toast('Create a group first!');
+  }
+
+  document.getElementById('groupTaskId').value = taskId;
+  const select = document.getElementById('groupSelect');
+  select.innerHTML = allGroups.map(g =>
+    `<option value="${g.group_id}">${escHtml(g.group_name)}</option>`
+  ).join('');
+
+  openModal('addToGroupModal');
+}
+
+/**
+ * POST /groups/<id>/tasks
+ */
+async function handleAddToGroup() {
+  const task_id  = document.getElementById('groupTaskId').value;
+  const group_id = document.getElementById('groupSelect').value;
+
+  const res  = await fetch(`${BASE_URL}/groups/${group_id}/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ task_id })
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    toast('Added to group!');
+    closeModal('addToGroupModal');
+    renderGroups();   // refresh drawer
+  } else {
+    toast(data.error || 'Could not add to group');
+  }
+}
+
+/**
+ * DELETE /groups/<group_id>/tasks/<task_id>
+ */
+async function handleRemoveFromGroup(group_id, task_id) {
+  const res = await fetch(`${BASE_URL}/groups/${group_id}/tasks/${task_id}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  });
+  if (res.ok) {
+    toast('Removed from group');
+    renderGroups();
+  }
+}
+
+
+// ================================================================
+//  UTILITIES
+// ================================================================
+
+/** Open / close modals */
+function openModal(id)  { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+/** Close modal when clicking outside the box */
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
+});
+
+/** Toggle the groups drawer */
+function toggleDrawer() {
+  document.getElementById('groupDrawer').classList.toggle('open');
+  renderGroups();   // refresh every time it's opened
+}
+
+/** Prevent XSS — always escape user-supplied text before injecting into HTML */
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Show a brief toast notification at the bottom of the screen */
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

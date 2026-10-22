@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <style>
+    /* General layout */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px 0;
+      background-color: #f4f4f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #444;
+      margin-bottom: 20px;
+    }
+
+    /* Section styling */
+    section {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px; /* Adds vertical spacing between sections */
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      font-size: 1.2em;
+      color: #333;
+      border-bottom: 2px solid #6200ea;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    /* Buttons */
+    button {
+      background-color: #6200ea;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #3700b3;
+    }
+
+    /* Forms and Inputs */
+    input[type="text"] {
+      width: calc(100% - 20px);
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Pre tags for output */
+    pre {
+      background-color: #f9f9f9;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 10px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    /* Responsive design */
+    @media (max-width: 600px) {
+      section {
+        width: 95%;
+        margin: 10px auto;
+      }
+    }
+  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trivia API Test</title>
+</head>
+<body>
+  <h1>Trivia API Tester</h1>
+
+  <!-- Section to get a random trivia question -->
+  <section>
+    <h2>Get Random Trivia</h2>
+    <button onclick="getRandomTrivia()">Fetch Random Trivia</button>
+    <pre id="randomTriviaOutput"></pre>
+  </section>
+
+  <!-- Section to get trivia for a specific superhero -->
+  <section>
+    <h2>Get Trivia for a Specific Superhero</h2>
+    <input type="text" id="heroName" placeholder="Enter superhero name" />
+    <button onclick="getTriviaForHero()">Fetch Trivia</button>
+    <pre id="heroTriviaOutput"></pre>
+  </section>
+
+  <!-- Section to add new trivia -->
+  <section>
+    <h2>Add New Trivia</h2>
+    <form id="addTriviaForm" onsubmit="addTrivia(event)">
+      <label>
+        Superhero:
+        <input type="text" id="addHero" required />
+      </label>
+      <br />
+      <label>
+        Question:
+        <input type="text" id="addQuestion" required />
+      </label>
+      <br />
+      <label>
+        Answer:
+        <input type="text" id="addAnswer" required />
+      </label>
+      <br />
+      <button type="submit">Add Trivia</button>
+    </form>
+    <pre id="addTriviaOutput"></pre>
+  </section>
+
+  <!-- Section to update trivia for a specific superhero -->
+  <section>
+    <h2>Update Trivia for a Specific Superhero</h2>
+    <form id="updateTriviaForm" onsubmit="updateTrivia(event)">
+      <label>
+        Superhero:
+        <input type="text" id="updateHero" required />
+      </label>
+      <br />
+      <label>
+        New Question:
+        <input type="text" id="updateQuestion" required />
+      </label>
+      <br />
+      <label>
+        New Answer:
+        <input type="text" id="updateAnswer" required />
+      </label>
+      <br />
+      <button type="submit">Update Trivia</button>
+    </form>
+    <pre id="updateTriviaOutput"></pre>
+  </section>
+
+  <!-- Section to play quiz mode -->
+  <section>
+    <h2>Quiz Mode</h2>
+    <button onclick="getQuizQuestion()">Get Quiz Question</button>
+    <pre id="quizQuestionOutput"></pre>
+
+    <input type="text" id="quizAnswer" placeholder="Your answer here" />
+    <button onclick="submitQuizAnswer()">Submit Answer</button>
+    <pre id="quizAnswerOutput"></pre>
+
+    <!-- Score display and reset button -->
+    <div style="margin-top: 15px;">
+      <strong>Score:</strong> <span id="quizScore">0</span>
+      <button onclick="resetScore()" style="margin-left: 10px;">Reset Score</button>
+    </div>
+  </section>
+
+
+  <script>
+    const apiUrl = 'http://localhost:5555';
+
+    // Function to get random trivia
+    async function getRandomTrivia() {
+      try {
+        const response = await fetch(`${apiUrl}/randomtrivia`);
+        const data = await response.json();
+        document.getElementById('randomTriviaOutput').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById('randomTriviaOutput').textContent = 'Error fetching random trivia';
+      }
+    }
+
+    // Function to get trivia for a specific hero
+    async function getTriviaForHero() {
+      const heroName = document.getElementById('heroName').value.trim();
+      if (!heroName) {
+        alert('Please enter a superhero name');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/trivia/${heroName}`);
+        const data = await response.json();
+        document.getElementById('heroTriviaOutput').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById('heroTriviaOutput').textContent = 'Error fetching trivia for the specified hero';
+      }
+    }
+
+    // Function to add new trivia
+    async function addTrivia(event) {
+      event.preventDefault();
+
+      const hero = document.getElementById('addHero').value.trim();
+      const question = document.getElementById('addQuestion').value.trim();
+      const answer = document.getElementById('addAnswer').value.trim();
+
+      if (!hero || !question || !answer) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/addtrivia`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hero, question, answer })
+        });
+
+        const data = await response.json();
+        document.getElementById('addTriviaOutput').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('addTriviaForm').reset();  // Clear form fields after submission
+      } catch (error) {
+        document.getElementById('addTriviaOutput').textContent = 'Error adding new trivia';
+      }
+    }
+
+    // Function to update trivia for a specific hero
+    async function updateTrivia(event) {
+      event.preventDefault();
+
+      const hero = document.getElementById('updateHero').value.trim();
+      const question = document.getElementById('updateQuestion').value.trim();
+      const answer = document.getElementById('updateAnswer').value.trim();
+
+      if (!hero || !question || !answer) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/updatetrivia/${hero}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, answer })
+        });
+
+        const data = await response.json();
+        document.getElementById('updateTriviaOutput').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('updateTriviaForm').reset();  // Clear form fields after submission
+      } catch (error) {
+        document.getElementById('updateTriviaOutput').textContent = 'Error updating trivia';
+      }
+    }
+  </script>
+
+  <script>
+  let score = 0;  // Initialize score
+
+  // Function to update the score display
+  function updateScoreDisplay() {
+    document.getElementById('quizScore').textContent = score;
+  }
+
+  // Function to reset the score
+  function resetScore() {
+    score = 0;
+    updateScoreDisplay();
+    document.getElementById('quizAnswerOutput').textContent = '';  // Clear answer feedback
+    document.getElementById('quizQuestionOutput').textContent = ''; // Clear the question display
+  }
+
+  // Function to get a quiz question
+  async function getQuizQuestion() {
+    try {
+      const response = await fetch(`${apiUrl}/quiz`);
+      const data = await response.json();
+      document.getElementById('quizQuestionOutput').textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      document.getElementById('quizQuestionOutput').textContent = 'Error fetching quiz question';
+    }
+  }
+
+  // Function to submit an answer for the quiz question
+  async function submitQuizAnswer() {
+    const hero = JSON.parse(document.getElementById('quizQuestionOutput').textContent).Superhero;
+    const answer = document.getElementById('quizAnswer').value.trim();
+
+    if (!answer) {
+      alert('Please enter your answer');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiUrl}/quiz`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hero, answer })
+      });
+
+      const data = await response.json();
+      document.getElementById('quizAnswerOutput').textContent = JSON.stringify(data, null, 2);
+
+      // Check if the answer is correct and update the score
+      if (data.result === "Correct!") {
+        score++;
+        updateScoreDisplay();
+      }
+    } catch (error) {
+      document.getElementById('quizAnswerOutput').textContent = 'Error submitting quiz answer';
+    }
+  }
+  </script>
+</body>
+</html>
